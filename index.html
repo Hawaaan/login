@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tailwind Auth Pages – Enhanced Validation</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+  <div id="auth-container" class="w-full max-w-md space-y-6">
+
+    <!-- ========== LOGIN FORM ========== -->
+    <form id="loginForm" class="bg-white p-6 rounded-2xl shadow-lg space-y-4">
+      <h1 class="text-2xl font-bold text-center">Login</h1>
+
+      <div>
+        <label for="loginEmail" class="block text-sm font-medium mb-1">Email</label>
+        <input id="loginEmail" type="email" required placeholder="you@example.com" class="w-full rounded-lg border-gray-300 focus:border-amber-600 focus:ring-amber-600" />
+        <p id="loginEmailErr" class="mt-1 text-sm text-red-600 hidden"></p>
+      </div>
+
+      <div>
+        <label for="loginPassword" class="block text-sm font-medium mb-1">Password</label>
+        <input id="loginPassword" type="password" minlength="6" required placeholder="••••••••" class="w-full rounded-lg border-gray-300 focus:border-amber-600 focus:ring-amber-600" />
+        <p id="loginPasswordErr" class="mt-1 text-sm text-red-600 hidden"></p>
+      </div>
+
+      <button type="submit" class="w-full py-2 rounded-lg bg-amber-600 text-white font-semibold hover:bg-amber-700 transition">Sign In</button>
+
+      <div class="flex justify-between text-sm mt-2">
+        <a href="#" id="forgotLink" class="text-amber-600 hover:underline">Forgot password?</a>
+        <a href="#" id="signupLink" class="text-amber-600 hover:underline">Sign up</a>
+      </div>
+    </form>
+
+    <!-- ========== SIGN UP FORM ========== -->aa
+    <form id="signupForm" class="hidden bg-white p-6 rounded-2xl shadow-lg space-y-4">
+      <h1 class="text-2xl font-bold text-center">Create Account</h1>
+
+      <div>
+        <label for="signupName" class="block text-sm font-medium mb-1">Full Name</label>
+        <input id="signupName" type="text" required placeholder="Ali Mohamed" class="w-full rounded-lg border-gray-300 focus:border-amber-600 focus:ring-amber-600" />
+        <p id="signupNameErr" class="mt-1 text-sm text-red-600 hidden"></p>
+      </div>
+
+      <div>
+        <label for="signupEmail" class="block text-sm font-medium mb-1">Email</label>
+        <input id="signupEmail" type="email" required placeholder="you@example.com" class="w-full rounded-lg border-gray-300 focus:border-amber-600 focus:ring-amber-600" />
+        <p id="signupEmailErr" class="mt-1 text-sm text-red-600 hidden"></p>
+      </div>
+
+      <div>
+        <label for="signupPassword" class="block text-sm font-medium mb-1">Password <span class="font-normal text-gray-500">(>=6 chars)</span></label>
+        <input id="signupPassword" type="password" minlength="6" required placeholder="Min 6 characters" class="w-full rounded-lg border-gray-300 focus:border-amber-600 focus:ring-amber-600" />
+        <p id="signupPasswordErr" class="mt-1 text-sm text-red-600 hidden"></p>
+      </div>
+
+      <div>
+        <label for="signupConfirm" class="block text-sm font-medium mb-1">Confirm Password</label>
+        <input id="signupConfirm" type="password" minlength="6" required placeholder="Repeat password" class="w-full rounded-lg border-gray-300 focus:border-amber-600 focus:ring-amber-600" />
+        <p id="signupConfirmErr" class="mt-1 text-sm text-red-600 hidden"></p>
+      </div>
+
+      <button type="submit" class="w-full py-2 rounded-lg bg-amber-600 text-white font-semibold hover:bg-amber-700 transition">Sign Up</button>
+      <p class="text-sm text-center">Already have an account? <a href="#" id="loginLinkFromSignup" class="text-amber-600 hover:underline">Log in</a></p>
+    </form>
+
+    <!-- ========== RESET PASSWORD FORM ========== -->
+    <form id="resetForm" class="hidden bg-white p-6 rounded-2xl shadow-lg space-y-4">
+      <h1 class="text-2xl font-bold text-center">Reset Password</h1>
+
+      <div>
+        <label for="newPassword" class="block text-sm font-medium mb-1">New Password</label>
+        <input id="newPassword" type="password" minlength="6" required placeholder="••••••••" class="w-full rounded-lg border-gray-300 focus:border-amber-600 focus:ring-amber-600" />
+        <p id="newPasswordErr" class="mt-1 text-sm text-red-600 hidden"></p>
+      </div>
+
+      <div>
+        <label for="confirmNewPassword" class="block text-sm font-medium mb-1">Confirm New Password</label>
+        <input id="confirmNewPassword" type="password" minlength="6" required placeholder="Repeat new password" class="w-full rounded-lg border-gray-300 focus:border-amber-600 focus:ring-amber-600" />
+        <p id="confirmNewPasswordErr" class="mt-1 text-sm text-red-600 hidden"></p>
+      </div>
+
+      <button type="submit" class="w-full py-2 rounded-lg bg-amber-600 text-white font-semibold hover:bg-amber-700 transition">Update Password</button>
+      <p class="text-sm text-center mt-2"><a href="#" id="loginLinkFromReset" class="text-amber-600 hover:underline">Back to login</a></p>
+    </form>
+  </div>
+
+  <!-- ========== CLIENT‑SIDE JS ========== -->
+  <script>
+    // -------- Helper functions --------
+    const forms = {
+      login: document.getElementById('loginForm'),
+      signup: document.getElementById('signupForm'),
+      reset: document.getElementById('resetForm'),
+    };
+
+    function show(formKey) {
+      for (const key in forms) {
+        forms[key].classList.toggle('hidden', key !== formKey);
+      }
+      clearAllErrors();
+    }
+
+    const emailRE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function setError(id, msg) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+    }
+    function clearError(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = '';
+      el.classList.add('hidden');
+    }
+    function clearAllErrors() {
+      document.querySelectorAll('[id$="Err"]').forEach((el) => clearError(el.id));
+    }
+
+    // -------- Navigation links --------
+    document.getElementById('signupLink').onclick = (e) => { e.preventDefault(); show('signup'); };
+    document.getElementById('forgotLink').onclick = (e) => { e.preventDefault(); show('reset'); };
+    document.getElementById('loginLinkFromSignup').onclick = (e) => { e.preventDefault(); show('login'); };
+    document.getElementById('loginLinkFromReset').onclick = (e) => { e.preventDefault(); show('login'); };
+
+    // -------- Login validation --------
+    forms.login.addEventListener('submit', (e) => {
+      clearAllErrors();
+      const email = loginEmail.value.trim();
+      const pwd = loginPassword.value;
+      let ok = true;
+
+      if (!emailRE.test(email)) {
+        setError('loginEmailErr', 'Email-ka sax ma aha.');
+        ok = false;
+      }
+      if (pwd.length < 6) {
+        setError('loginPasswordErr', 'Password-ku waa inuu ka bato 5 xaraf.');
+        ok = false;
+      }
+      if (!ok) {
+        e.preventDefault();
+        return;
+      }
+      // Demo: pretend we called API and got failure for wrong creds
+      e.preventDefault();
+      setError('loginPasswordErr', 'Email ama password qalad ah.');
+    });
+
+    // -------- Signup validation --------
+    forms.signup.addEventListener('submit', (e) => {
+      clearAllErrors();
+      const name = signupName.value.trim();
+      const email = signupEmail.value.trim();
+      const pwd = signupPassword.value;
+      const confirm = signupConfirm.value;
+      let ok = true;
+
+      if (name.length < 2) {
+        setError('signupNameErr', 'Magaca ugu yaraan 2 xaraf.');
+        ok = false;
+      }
+      if (!emailRE.test(email)) {
+        setError('signupEmailErr', 'Email-ka sax ma aha.');
+        ok = false;
+      }
+      if (pwd.length < 6) {
+        setError('signupPasswordErr', 'Password-ka waa inuu ka bato 5 xaraf.');
+        ok = false;
+      }
+      if (pwd !== confirm) {
+        setError('signupConfirmErr', 'Password-ka lama mid aha.');
+        ok = false;
+      }
+
+      if (!ok) {
+        e.preventDefault();
+      } else {
+        // Demo success
+        e.preventDefault();
+        alert('🚀 Signup guuleystay!');
+        show('login');
+      }
+    });
+
+    // -------- Reset‑password validation --------
+    forms.reset.addEventListener('submit', (e) => {
+      clearAllErrors();
+      const pwd = newPassword.value;
+      const confirm = confirmNewPassword.value;
+      let ok = true;
+
+      if (pwd.length < 6) {
+        setError('newPasswordErr', 'Password-ka waa inuu ka bato 5 xaraf.');
+        ok = false;
+      }
+      if (pwd !== confirm) {
+        setError('confirmNewPasswordErr', 'Password-ka lama mid aha.');
+        ok = false;
+      }
+      if (!ok) {
+        e.preventDefault();
+        return;
+      }
+      // Demo success
+      e.preventDefault();
+      alert('✅ Password wa la cusbooneysiiyay!');
+      show('login');
+    });
+  </script>
+</body>
+</html>
